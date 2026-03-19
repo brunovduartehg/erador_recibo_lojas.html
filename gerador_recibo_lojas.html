@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gerador de Recibo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+    }
+    .panel, .paper {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+    .panel {
+      padding: 20px;
+      position: sticky;
+      top: 20px;
+      height: fit-content;
+    }
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .panel p {
+      margin: 0 0 18px;
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #374151;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    textarea { resize: vertical; min-height: 76px; }
+    input:focus, select:focus, textarea:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .primary { background: #111827; color: #fff; }
+    .secondary { background: #e5e7eb; color: #111827; }
+
+    .paper {
+      padding: 50px 56px;
+      min-height: 1122px;
+      width: 794px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .receipt-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 90px;
+    }
+    .logo-box {
+      width: 110px;
+      height: 90px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #64748b;
+      font-size: 12px;
+      padding: 10px;
+      overflow: hidden;
+      background: #f8fafc;
+    }
+    .logo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .company-info {
+      flex: 1;
+      text-align: center;
+      padding-top: 4px;
+    }
+    .company-name {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .company-subtitle {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      min-height: 18px;
+    }
+    .company-address {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 800;
+      margin: 24px 0 140px;
+      letter-spacing: 1px;
+    }
+    .body-text {
+      font-size: 20px;
+      line-height: 1.8;
+      text-align: justify;
+      margin-top: 80px;
+      white-space: pre-wrap;
+    }
+    .date-line {
+      text-align: center;
+      font-size: 20px;
+      margin-top: 170px;
+    }
+    .signature-area {
+      margin-top: 60px;
+      text-align: center;
+    }
+    .signature-line {
+      width: 340px;
+      margin: 40px auto 8px;
+      border-top: 2px solid #111;
+      height: 2px;
+    }
+    .signature-name {
+      font-size: 18px;
+      font-weight: 700;
+      min-height: 22px;
+    }
+    .signature-company {
+      font-size: 18px;
+      margin-top: 6px;
+    }
+    .stamp {
+      margin: 60px auto 0;
+      width: 280px;
+      border: 2px dashed #94a3b8;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      color: #475569;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .muted {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 1100px) {
+      .page { grid-template-columns: 1fr; }
+      .panel { position: static; }
+      .paper { width: 100%; min-height: auto; padding: 28px; }
+      .title { margin-bottom: 60px; }
+      .body-text { font-size: 18px; margin-top: 30px; }
+      .date-line { margin-top: 70px; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .panel { display: none !important; }
+      .page { display: block; padding: 0; }
+      .paper {
+        box-shadow: none;
+        border-radius: 0;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 18mm 16mm;
+      }
+      @page { size: A4; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="panel">
+      <h1>Gerador de Recibo</h1>
+      <p>Escolha a loja e preencha apenas os dados do cliente. O resto muda automaticamente.</p>
+
+      <div class="field">
+        <label for="loja">Loja</label>
+        <select id="loja">
+          <option value="cynthia">Cynthia Modas</option>
+          <option value="laury">Laury Calçados</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="slogan">Frase / subtítulo</label>
+        <input id="slogan" value="" placeholder="Opcional" />
+      </div>
+
+      <div class="field">
+        <label for="logoInput">Logo da empresa</label>
+        <input id="logoInput" type="file" accept="image/*" />
+      </div>
+
+      <hr style="margin:18px 0;border:none;border-top:1px solid #e5e7eb;">
+
+      <div class="field">
+        <label for="nome">Nome completo do cliente</label>
+        <input id="nome" placeholder="Ex.: ANA PAULA SOARES ALVES DE VASCONCELOS" />
+      </div>
+
+      <div class="field">
+        <label for="endereco">Endereço</label>
+        <textarea id="endereco" placeholder="Ex.: Rua Francisco Dandu, Centro, Cupira - PE"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="cpf">CPF</label>
+        <input id="cpf" placeholder="000.000.000-00" />
+      </div>
+
+      <div class="field">
+        <label for="valor">Valor da nota</label>
+        <select id="valor">
+          <option value="100">R$ 100,00</option>
+          <option value="200">R$ 200,00</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="nfe">Número da NFe</label>
+        <input id="nfe" placeholder="Ex.: 012" />
+      </div>
+
+      <div class="field">
+        <label for="serie">Série</label>
+        <input id="serie" placeholder="Ex.: 1" />
+      </div>
+
+      <div class="field">
+        <label for="data">Data</label>
+        <input id="data" type="date" />
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="gerarRecibo()">Gerar recibo</button>
+        <button class="secondary" onclick="window.print()">Imprimir / Salvar PDF</button>
+        <button class="secondary" onclick="limparCampos()">Limpar</button>
+      </div>
+
+      <div class="muted">A loja, endereço, CNPJ e assinatura mudam sozinhos conforme a opção escolhida.</div>
+    </div>
+
+    <div class="paper" id="papel">
+      <div class="receipt-header">
+        <div class="logo-box" id="logoPreview">LOGO</div>
+        <div class="company-info">
+          <div class="company-name" id="outEmpresa">CYNTHIA MODAS</div>
+          <div class="company-subtitle" id="outSlogan"></div>
+          <div class="company-address" id="outEnderecoEmpresa">RUA DESEMBARGADOR FELISMINO GUEDES, Nº 54</div>
+        </div>
+      </div>
+
+      <div class="title">RECIBO</div>
+
+      <div class="body-text" id="textoRecibo">
+Recebemos de ______________________________________, residente em ______________________________________, sob CPF: ______________________, a importância de R$ 100,00 (Cem reais), referente à compra na NF nº ______ Série ______.
+      </div>
+
+      <div class="date-line" id="outData">Cupira - PE, ___ de __________ de ______.</div>
+
+      <div class="signature-area">
+        <div class="signature-line"></div>
+        <div class="signature-name" id="outAssinante">JOSE VALDEMAR DA SILVA</div>
+        <div class="signature-company" id="outEmpresaAss">CYNTHIA MODAS</div>
+      </div>
+
+      <div class="stamp" id="outCarimbo">
+40.876.443/0001-65<br>
+CYNTHIA MODAS<br>
+RUA DESEMBARGADOR FELISMINO GUEDES, Nº 54
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const lojas = {
+      cynthia: {
+        empresa: 'CYNTHIA MODAS',
+        enderecoEmpresa: 'RUA DESEMBARGADOR FELISMINO GUEDES, Nº 54',
+        cnpj: '40.876.443/0001-65',
+        assinante: 'JOSE VALDEMAR DA SILVA',
+        empresaAss: 'CYNTHIA MODAS',
+        cidadeData: 'Cupira - PE'
+      },
+      laury: {
+        empresa: 'LAURY CALÇADOS',
+        enderecoEmpresa: 'RUA ADERBAL JUREMA Nº 131',
+        cnpj: '03.740.860/0001-50',
+        assinante: '',
+        empresaAss: 'LAURY CALÇADOS',
+        cidadeData: 'Cupira - PE'
+      }
+    };
+
+    const meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    function valorPorExtenso(valor) {
+      if (String(valor) === '100') return 'Cem reais';
+      if (String(valor) === '200') return 'Duzentos reais';
+      return '';
+    }
+
+    function valorFormatado(valor) {
+      return Number(valor).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+    }
+
+    function formatarDataPtBr(dataIso) {
+      if (!dataIso) return '___ de __________ de ______';
+      const [ano, mes, dia] = dataIso.split('-');
+      return `${Number(dia)} de ${meses[Number(mes) - 1]} de ${ano}`;
+    }
+
+    function dadosLojaAtual() {
+      const loja = document.getElementById('loja').value;
+      return lojas[loja];
+    }
+
+    function gerarRecibo() {
+      const loja = dadosLojaAtual();
+      const slogan = document.getElementById('slogan').value.trim();
+      const nome = document.getElementById('nome').value.trim() || '______________________________________';
+      const endereco = document.getElementById('endereco').value.trim() || '______________________________________';
+      const cpf = document.getElementById('cpf').value.trim() || '______________________';
+      const valor = document.getElementById('valor').value;
+      const nfe = document.getElementById('nfe').value.trim() || '______';
+      const serie = document.getElementById('serie').value.trim() || '______';
+      const data = document.getElementById('data').value;
+
+      document.getElementById('outEmpresa').textContent = loja.empresa;
+      document.getElementById('outEmpresaAss').textContent = loja.empresaAss;
+      document.getElementById('outSlogan').textContent = slogan;
+      document.getElementById('outEnderecoEmpresa').textContent = loja.enderecoEmpresa;
+      document.getElementById('outAssinante').textContent = loja.assinante;
+
+      const texto = `Recebemos de ${nome}, residente em ${endereco}, sob CPF: ${cpf}, a importância de ${valorFormatado(valor)} (${valorPorExtenso(valor)}), referente à compra na NF nº ${nfe} Série ${serie}.`;
+      document.getElementById('textoRecibo').textContent = texto;
+
+      document.getElementById('outData').textContent = `${loja.cidadeData}, ${formatarDataPtBr(data)}.`;
+
+      document.getElementById('outCarimbo').innerHTML =
+        `${loja.cnpj}<br>${loja.empresa}<br>${loja.enderecoEmpresa}`;
+    }
+
+    function limparCampos() {
+      document.getElementById('nome').value = '';
+      document.getElementById('endereco').value = '';
+      document.getElementById('cpf').value = '';
+      document.getElementById('valor').value = '100';
+      document.getElementById('nfe').value = '';
+      document.getElementById('serie').value = '';
+      document.getElementById('slogan').value = '';
+      document.getElementById('data').valueAsDate = new Date();
+      gerarRecibo();
+    }
+
+    document.getElementById('logoInput').addEventListener('change', function (event) {
+      const file = event.target.files?.[0];
+      const logoPreview = document.getElementById('logoPreview');
+      if (!file) {
+        logoPreview.innerHTML = 'LOGO';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        logoPreview.innerHTML = `<img src="${e.target.result}" alt="Logo">`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById('loja').addEventListener('change', gerarRecibo);
+    document.getElementById('data').valueAsDate = new Date();
+    gerarRecibo();
+  </script>
+</body>
+</html>
